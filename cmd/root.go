@@ -23,7 +23,7 @@ gh-dl handles archived or compressed file as well`,
 		if err != nil {
 			panic(err)
 		}
-		binaryNameFlag, err := cmd.Flags().GetString("bin")
+		binaryNameFlag, err := cmd.Flags().GetString("name")
 		if err != nil {
 			panic(err)
 		}
@@ -42,7 +42,7 @@ func main() {
 }
 
 func init() {
-	rootCmd.PersistentFlags().StringP("bin", "b", "", "specify bin file name")
+	rootCmd.PersistentFlags().StringP("name", "n", "", "specify binary file name")
 }
 
 // parse user/repo[#tagname] arg
