@@ -19,7 +19,7 @@ type model struct {
 func initialModel(choices *[]string) model {
 	return model{
 		choices:  *choices,
-		selected: 0,
+		selected: -1,
 	}
 }
 
@@ -54,17 +54,21 @@ func (m model) View() string {
 	paddingS := lipgloss.NewStyle().PaddingLeft(2).MaxWidth(maxWidth)
 	colorS := paddingS.Copy().
 		Foreground(blue).BorderLeft(true).BorderForeground(blue)
-
-	s := paddingS.Render("gh-dl can't figure out which release to download\nplease select it manully") + "\n\n"
-	for i, choice := range m.choices {
-		if m.cursor == i {
-			s += colorS.Render(choice) + "\n"
-		} else {
-			s += paddingS.Render(choice) + "\n"
+	if m.selected == -1 {
+		s := "\n" + paddingS.Render("gh-dl can't figure out which release to download\nplease select it manully") + "\n\n"
+		for i, choice := range m.choices {
+			if m.cursor == i {
+				s += colorS.Render(choice) + "\n"
+			} else {
+				s += paddingS.Render(choice) + "\n"
+			}
 		}
+		// Send the UI for rendering
+		return s
+	} else {
+		s := paddingS.Render(fmt.Sprintf("start downloading %s", lipgloss.NewStyle().Foreground(blue).Render(m.choices[m.selected])))
+		return "\n" + s + "\n"
 	}
-	// Send the UI for rendering
-	return s
 }
 
 func Select(choices *[]string) int {

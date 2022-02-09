@@ -18,6 +18,7 @@ type ProgressBytesReader struct {
 
 type model struct {
 	percent  float64
+	humanize string
 	progress progress.Model
 	init     func() tea.Msg
 }
@@ -50,12 +51,12 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (e model) View() string {
 	pad := strings.Repeat(" ", padding)
 	return "\n" +
-		pad + e.progress.ViewAs(e.percent) + "\n"
+		pad + e.progress.ViewAs(e.percent) + fmt.Sprintf(" of %s", e.humanize) + "\n"
 }
 
-func Progress(starter func(updater func(float64))) {
+func Progress(starter func(updater func(float64)), humanize string) {
 	prog := progress.New(progress.WithScaledGradient("#FF7CCB", "#FDFF8C"))
-	state := model{progress: prog}
+	state := model{progress: prog, humanize: humanize}
 	updater := func(p float64) {
 		state.percent = p
 	}
@@ -68,5 +69,4 @@ func Progress(starter func(updater func(float64))) {
 		fmt.Println("Oh no!", err)
 		os.Exit(1)
 	}
-
 }

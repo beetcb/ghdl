@@ -16,6 +16,7 @@ import (
 	"strings"
 
 	"github.com/beetcb/ghdl/helper/pg"
+	humanize "github.com/dustin/go-humanize"
 )
 
 type GHReleaseDl struct {
@@ -61,7 +62,7 @@ func (dl *GHReleaseDl) DlAndDecompression() {
 			panic(err)
 		}
 	}
-	pg.Progress(starter)
+	pg.Progress(starter, humanize.Bytes(uint64(fileSize)))
 
 	// `file` has no content, we must open it for reading
 	openfile, err := os.Open(file.Name())
