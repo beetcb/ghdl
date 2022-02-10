@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"strings"
 
@@ -18,8 +19,7 @@ gh-dl handles archived or compressed file as well`,
 	Run: func(cmd *cobra.Command, args []string) {
 		repo, tag := parseArg(args[0])
 		ghRelease := ghdl.GHRelease{RepoPath: repo, TagName: tag}
-		url, binaryName, err := ghRelease.GetGHReleases()
-		ghReleaseDl := ghdl.GHReleaseDl{Url: url, BinaryName: binaryName}
+		ghReleaseDl, err := ghRelease.GetGHReleases()
 		if err != nil {
 			panic(err)
 		}
@@ -28,9 +28,19 @@ gh-dl handles archived or compressed file as well`,
 			panic(err)
 		}
 		if binaryNameFlag != "" {
-			binaryName = binaryNameFlag
+			ghReleaseDl.BinaryName = binaryNameFlag
 		}
-		ghReleaseDl.DlAndDecompression()
+		if err := ghReleaseDl.DlTo("."); err != nil {
+			fmt.Printf("  error: %s\n", err)
+			return
+		}
+		if err := ghReleaseDl.ExtractBinary(); err != nil {
+			fmt.Printf("  error: %s\n", err)
+			return
+		}
+		if err := os.Chmod(ghReleaseDl.BinaryName, 0777); err != nil {
+			fmt.Printf("  error: %s\n", err)
+		}
 	},
 }
 

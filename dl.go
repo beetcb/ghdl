@@ -3,16 +3,12 @@ package ghdl
 import (
 	"archive/tar"
 	"archive/zip"
-	"bytes"
 	"compress/gzip"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
-	"runtime"
-	"strconv"
 	"strings"
 
 	"github.com/beetcb/ghdl/helper/pg"
@@ -22,133 +18,132 @@ import (
 type GHReleaseDl struct {
 	BinaryName string
 	Url        string
+	Size       int64
 }
 
-func (dl *GHReleaseDl) DlAndDecompression() {
-	b := dl.BinaryName + func() string {
-		if runtime.GOOS == "windows" {
-			return ".exe"
-		} else {
-			return ""
-		}
-	}()
-
+// Download asset from github release
+// dl.BinaryName path might change mutably
+func (dl *GHReleaseDl) DlTo(path string) error {
+	if path != "" {
+		dl.BinaryName = filepath.Join(path, dl.BinaryName)
+	}
 	req, err := http.NewRequest("GET", dl.Url, nil)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	req.Header.Set("Accept", "application/vnd.github.v3+json")
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	defer resp.Body.Close()
-	fileSize, err := strconv.Atoi(resp.Header.Get("Content-Length"))
+
 	if err != nil {
-		panic(err)
+		return err
 	}
 
-	file, err := ioutil.TempFile("", "*")
+	file, err := os.Create(dl.BinaryName)
 	if err != nil {
-		panic(err)
+		return err
 	}
-	defer os.Remove(file.Name())
 
 	// create progress tui
 	starter := func(updater func(float64)) {
 		if _, err := io.Copy(file, &pg.ProgressBytesReader{Reader: resp.Body, Handler: func(p int) {
-			updater(float64(p) / float64(fileSize))
+			updater(float64(p) / float64(dl.Size))
 		}}); err != nil {
 			panic(err)
 		}
 	}
-	pg.Progress(starter, humanize.Bytes(uint64(fileSize)))
+	pg.Progress(starter, humanize.Bytes(uint64(dl.Size)))
+	return nil
+}
 
+func (dl GHReleaseDl) ExtractBinary() error {
 	// `file` has no content, we must open it for reading
-	openfile, err := os.Open(file.Name())
+	openfile, err := os.Open(dl.BinaryName)
 	if err != nil {
-		panic(err)
+		return err
 	}
-	filebody, err := ioutil.ReadAll(openfile)
-	if err != nil {
-		panic(err)
-	}
-	bytesReader := bytes.NewReader(filebody)
+	defer openfile.Close()
 
 	fileExt := filepath.Ext(dl.Url)
-	var decompressedBinary *[]byte
+	var decompressedBinary io.Reader = nil
 	switch fileExt {
 	case ".zip":
-		decompressedBinary, err = dl.zipBinary(bytesReader, b)
+		decompressedBinary, err = dl.ZipBinary(openfile)
 		if err != nil {
-			panic(err)
+			return err
 		}
 	case ".gz":
 		if strings.Contains(dl.Url, ".tar.gz") {
-			decompressedBinary, err = dl.targzBinary(bytesReader, b)
+			decompressedBinary, err = dl.TargzBinary(openfile)
 			if err != nil {
-				panic(err)
+				return err
 			}
 		} else {
-			decompressedBinary, err = dl.gzBinary(bytesReader, b)
+			decompressedBinary, err = dl.GzBinary(openfile)
 			if err != nil {
-				panic(err)
+				return err
 			}
 		}
+	case "":
+		decompressedBinary = openfile
 	case ".deb":
 	case ".rpm":
 	case ".apk":
-		fileName := b + fileExt
+		fileName := dl.BinaryName + fileExt
 		fmt.Printf("Detected deb/rpm/apk package, download directly to ./%s\nYou can install it with the appropriate commands\n", fileName)
-		if err := os.WriteFile(fileName, filebody, 0777); err != nil {
+		if err := os.Rename(dl.BinaryName, fileName); err != nil {
 			panic(err)
 		}
-	case "":
-		decompressedBinary = &filebody
+		return nil
 	default:
-		panic("unsupported file format")
+		defer os.Remove(dl.BinaryName)
+		return fmt.Errorf("unsupported file format")
 	}
-	if err := os.WriteFile(b, *decompressedBinary, 0777); err != nil {
-		panic(err)
+
+	// rewrite the file
+	out, err := os.Create(dl.BinaryName)
+	if err != nil {
+		return err
 	}
+	defer out.Close()
+	if _, err := io.Copy(out, decompressedBinary); err != nil {
+		return nil
+	}
+
+	return nil
 }
 
-func (*GHReleaseDl) zipBinary(r *bytes.Reader, b string) (*[]byte, error) {
-	zipR, err := zip.NewReader(r, int64(r.Len()))
+func (dl GHReleaseDl) ZipBinary(r *os.File) (io.Reader, error) {
+	zipR, err := zip.NewReader(r, dl.Size)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, f := range zipR.File {
-		if filepath.Base(f.Name) == b || len(zipR.File) == 1 {
+		if filepath.Base(f.Name) == dl.BinaryName || len(zipR.File) == 1 {
 			open, err := f.Open()
 			if err != nil {
 				return nil, err
 			}
-			ret, err := ioutil.ReadAll(open)
-			if err != nil {
-				return nil, err
-			}
-			return &ret, err
+			return open, nil
 		}
 	}
-	return nil, fmt.Errorf("Binary file %v not found", b)
+	return nil, fmt.Errorf("Binary file %v not found", dl.BinaryName)
 }
 
-func (*GHReleaseDl) gzBinary(r *bytes.Reader, b string) (*[]byte, error) {
+func (GHReleaseDl) GzBinary(r *os.File) (io.Reader, error) {
 	gzR, err := gzip.NewReader(r)
 	if err != nil {
 		return nil, err
 	}
 	defer gzR.Close()
-	ret, err := ioutil.ReadAll(gzR)
-	if err != nil {
-		return nil, err
-	}
-	return &ret, nil
+	return gzR, nil
 }
 
-func (*GHReleaseDl) targzBinary(r *bytes.Reader, b string) (*[]byte, error) {
+func (dl GHReleaseDl) TargzBinary(r *os.File) (io.Reader, error) {
 	gzR, err := gzip.NewReader(r)
 	if err != nil {
 		return nil, err
@@ -156,7 +151,6 @@ func (*GHReleaseDl) targzBinary(r *bytes.Reader, b string) (*[]byte, error) {
 	defer gzR.Close()
 	tarR := tar.NewReader(gzR)
 
-	var file []byte
 	for {
 		header, err := tarR.Next()
 		if err == io.EOF {
@@ -165,13 +159,13 @@ func (*GHReleaseDl) targzBinary(r *bytes.Reader, b string) (*[]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-		if (header.Typeflag != tar.TypeDir) && filepath.Base(header.Name) == b {
-			file, err = ioutil.ReadAll(tarR)
+		if (header.Typeflag != tar.TypeDir) && filepath.Base(header.Name) == dl.BinaryName {
+
 			if err != nil {
 				return nil, err
 			}
 			break
 		}
 	}
-	return &file, nil
+	return tarR, nil
 }
