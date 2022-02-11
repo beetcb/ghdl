@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/beetcb/ghdl"
+	h "github.com/beetcb/ghdl/helper"
 	"github.com/spf13/cobra"
 )
 
@@ -17,29 +18,45 @@ var rootCmd = &cobra.Command{
 gh-dl handles archived or compressed file as well`,
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		cmdFlags := cmd.Flags()
+		binaryNameFlag, err := cmdFlags.GetString("name")
+		if err != nil {
+			panic(err)
+		}
+		pathFlag, err := cmdFlags.GetString("path")
+		if err != nil {
+			panic(err)
+		}
 		repo, tag := parseArg(args[0])
 		ghRelease := ghdl.GHRelease{RepoPath: repo, TagName: tag}
 		ghReleaseDl, err := ghRelease.GetGHReleases()
 		if err != nil {
-			panic(err)
+			h.Print(fmt.Sprintf("get gh releases failed: %s\n", err), h.PrintModeErr)
 		}
-		binaryNameFlag, err := cmd.Flags().GetString("name")
-		if err != nil {
-			panic(err)
-		}
+
 		if binaryNameFlag != "" {
 			ghReleaseDl.BinaryName = binaryNameFlag
 		}
-		if err := ghReleaseDl.DlTo("."); err != nil {
-			fmt.Printf("  error: %s\n", err)
-			return
+		if err := ghReleaseDl.DlTo(pathFlag); err != nil {
+			h.Print(fmt.Sprintf("download failed: %s", err), h.PrintModeErr)
+			os.Exit(1)
 		}
 		if err := ghReleaseDl.ExtractBinary(); err != nil {
-			fmt.Printf("  error: %s\n", err)
-			return
+			switch err {
+			case ghdl.NeedInstallError:
+				h.Print(fmt.Sprintf("%s. You can install %s with the appropriate commands", err, ghReleaseDl.BinaryName), h.PrintModeInfo)
+				os.Exit(0)
+			case ghdl.NoBinError:
+				h.Print(fmt.Sprintf("%s. Try specify binary name flag", err), h.PrintModeInfo)
+				os.Exit(0)
+			default:
+				h.Print(fmt.Sprintf("extract failed: %s", err), h.PrintModeErr)
+				os.Exit(1)
+			}
 		}
+		h.Print(fmt.Sprintf("saved binary executable to %s", ghReleaseDl.BinaryName), h.PrintModeSuccess)
 		if err := os.Chmod(ghReleaseDl.BinaryName, 0777); err != nil {
-			fmt.Printf("  error: %s\n", err)
+			h.Print(fmt.Sprintf("chmod failed: %s", err), h.PrintModeErr)
 		}
 	},
 }
@@ -53,6 +70,7 @@ func main() {
 
 func init() {
 	rootCmd.PersistentFlags().StringP("name", "n", "", "specify binary file name")
+	rootCmd.PersistentFlags().StringP("path", "p", ".", "save binary to `path`")
 }
 
 // parse user/repo[#tagname] arg

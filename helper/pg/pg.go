@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	h "github.com/beetcb/ghdl/helper"
 	"github.com/charmbracelet/bubbles/progress"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -33,7 +34,7 @@ func (pbr *ProgressBytesReader) Read(b []byte) (n int, err error) {
 }
 
 const (
-	padding  = 2
+	padding  = 4
 	maxWidth = 80
 )
 
@@ -50,8 +51,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (e model) View() string {
 	pad := strings.Repeat(" ", padding)
-	return "\n" +
-		pad + e.progress.ViewAs(e.percent) + fmt.Sprintf(" of %s", e.humanize) + "\n"
+	return "\n" + pad + e.progress.ViewAs(e.percent) + fmt.Sprintf(" of %s", e.humanize) + "\n\n"
 }
 
 func Progress(starter func(updater func(float64)), humanize string) {
@@ -66,7 +66,7 @@ func Progress(starter func(updater func(float64)), humanize string) {
 	}
 
 	if err := tea.NewProgram(&state).Start(); err != nil {
-		fmt.Println("Oh no!", err)
+		h.Print(fmt.Sprintln("Oh no!", err), h.PrintModeErr)
 		os.Exit(1)
 	}
 }

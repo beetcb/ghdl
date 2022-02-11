@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	h "github.com/beetcb/ghdl/helper"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -51,11 +52,12 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m model) View() string {
 	blue := lipgloss.Color("14")
+	yellow := lipgloss.Color("11")
 	paddingS := lipgloss.NewStyle().PaddingLeft(2).MaxWidth(maxWidth)
 	colorS := paddingS.Copy().
 		Foreground(blue).BorderLeft(true).BorderForeground(blue)
 	if m.selected == -1 {
-		s := "\n" + paddingS.Render("gh-dl can't figure out which release to download\nplease select it manully") + "\n\n"
+		s := paddingS.Copy().Foreground(yellow).Render("gh-dl can't figure out which release to download\nplease select it manully") + "\n"
 		for i, choice := range m.choices {
 			if m.cursor == i {
 				s += colorS.Render(choice) + "\n"
@@ -64,10 +66,10 @@ func (m model) View() string {
 			}
 		}
 		// Send the UI for rendering
-		return s
+		return s + "\n"
 	} else {
-		s := paddingS.Render(fmt.Sprintf("start downloading %s", lipgloss.NewStyle().Foreground(blue).Render(m.choices[m.selected])))
-		return "\n" + s + "\n"
+		s := paddingS.Copy().Foreground(yellow).Render(fmt.Sprintf("start downloading %s", lipgloss.NewStyle().Foreground(blue).Render(m.choices[m.selected]))) + "\n"
+		return s
 	}
 }
 
@@ -75,7 +77,7 @@ func Select(choices *[]string) int {
 	state := initialModel(choices)
 	p := tea.NewProgram(&state)
 	if err := p.Start(); err != nil {
-		fmt.Printf("Alas, there's been an error: %v", err)
+		h.Print(fmt.Sprintf("Alas, there's been an error: %v", err), h.PrintModeErr)
 		os.Exit(1)
 	}
 	return state.selected
