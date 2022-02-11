@@ -12,10 +12,10 @@ import (
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "gh-dl <user/repo[#tagname]>",
-	Short: "gh-dl download binary from github release",
-	Long: `gh-dl download binary from github release
-gh-dl handles archived or compressed file as well`,
+	Use:   "ghdl <user/repo[#tagname]>",
+	Short: "ghdl download binary from github release",
+	Long: `ghdl download binary from github release
+ghdl handles archived or compressed file as well`,
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		cmdFlags := cmd.Flags()
