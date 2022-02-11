@@ -48,14 +48,14 @@ ghdl handles archived or compressed file as well`,
 				h.Print(fmt.Sprintf("%s. You can install %s with the appropriate commands", err, ghReleaseDl.BinaryName), h.PrintModeInfo)
 				os.Exit(0)
 			case ghdl.NoBinError:
-				h.Print(fmt.Sprintf("%s. Try specify binary name flag", err), h.PrintModeInfo)
+				h.Print(fmt.Sprintf("%s. Try to specify binary name flag", err), h.PrintModeInfo)
 				os.Exit(0)
 			default:
 				h.Print(fmt.Sprintf("extract failed: %s", err), h.PrintModeErr)
 				os.Exit(1)
 			}
 		}
-		h.Print(fmt.Sprintf("saved binary executable to %s", ghReleaseDl.BinaryName), h.PrintModeSuccess)
+		h.Print(fmt.Sprintf("saved executable to %s", ghReleaseDl.BinaryName), h.PrintModeSuccess)
 		if err := os.Chmod(ghReleaseDl.BinaryName, 0777); err != nil {
 			h.Print(fmt.Sprintf("chmod failed: %s", err), h.PrintModeErr)
 		}

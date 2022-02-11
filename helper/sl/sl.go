@@ -51,13 +51,13 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
-	blue := lipgloss.Color("14")
-	yellow := lipgloss.Color("11")
-	paddingS := lipgloss.NewStyle().PaddingLeft(2).MaxWidth(maxWidth)
+	blue, printWidth := lipgloss.Color("14"), 60
+	paddingS := lipgloss.NewStyle().PaddingLeft(2).Width(printWidth)
 	colorS := paddingS.Copy().
 		Foreground(blue).BorderLeft(true).BorderForeground(blue)
+	s := "\n" + h.Sprint("there is more than one option after filtering, please select it manually", h.PrintModeInfo) + "\n"
 	if m.selected == -1 {
-		s := "\n" + paddingS.Copy().Foreground(yellow).Render("gh-dl can't figure out which release to download\nplease select it manully") + "\n\n"
+		s += "\n"
 		for i, choice := range m.choices {
 			if m.cursor == i {
 				s += colorS.Render(choice) + "\n"
@@ -68,7 +68,7 @@ func (m model) View() string {
 		// Send the UI for rendering
 		return s + "\n"
 	} else {
-		s := "\n" + paddingS.Copy().Foreground(yellow).Render(fmt.Sprintf("start downloading %s", lipgloss.NewStyle().Foreground(blue).Render(m.choices[m.selected]))) + "\n"
+		s += h.Sprint(fmt.Sprintf("start downloading %s", lipgloss.NewStyle().Foreground(blue).Render(m.choices[m.selected])), h.PrintModeInfo) + "\n"
 		return s
 	}
 }

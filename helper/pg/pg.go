@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"strings"
 
 	h "github.com/beetcb/ghdl/helper"
 	"github.com/charmbracelet/bubbles/progress"
@@ -33,11 +32,6 @@ func (pbr *ProgressBytesReader) Read(b []byte) (n int, err error) {
 	return
 }
 
-const (
-	padding  = 4
-	maxWidth = 80
-)
-
 func (m model) Init() tea.Cmd {
 	return m.init
 }
@@ -50,8 +44,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (e model) View() string {
-	pad := strings.Repeat(" ", padding)
-	return "\n" + pad + e.progress.ViewAs(e.percent) + fmt.Sprintf(" of %s", e.humanize) + "\n\n"
+	return "\n  " + e.progress.ViewAs(e.percent) + fmt.Sprintf(" of %s", e.humanize) + "\n\n"
 }
 
 func Progress(starter func(updater func(float64)), humanize string) {

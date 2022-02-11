@@ -6,22 +6,30 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-const maxWidth = 80
-
 const (
 	PrintModeInfo    = 0
 	PrintModeSuccess = 1
 	PrintModeErr     = 2
 )
 
-func Print(str string, printMode int) {
-	var PaddingLeft = lipgloss.NewStyle().PaddingLeft(2).MaxWidth(maxWidth)
+func Sprint(str string, printMode int) string {
+	printWidth := 60
+	var newStyle = lipgloss.NewStyle().Width(printWidth)
+	prompt := lipgloss.NewStyle().Foreground(lipgloss.Color("13")).Render("→ ")
+	var sPrint string = prompt
 	switch printMode {
 	case PrintModeInfo:
-		fmt.Println(PaddingLeft.Foreground(lipgloss.Color("11")).Render(str))
+		sPrint += newStyle.Copy().Foreground(lipgloss.Color("146")).Render(str)
 	case PrintModeSuccess:
-		fmt.Println(PaddingLeft.Foreground(lipgloss.Color("14")).Render(str))
+		sPrint += newStyle.Copy().Foreground(lipgloss.Color("6")).Render(str)
 	case PrintModeErr:
-		fmt.Println(PaddingLeft.Foreground(lipgloss.Color("202")).Render(str))
+		sPrint += newStyle.Copy().Foreground(lipgloss.Color("9")).Render(str)
 	}
+
+	return sPrint
+}
+
+func Print(str string, printMode int) {
+	sPrint := Sprint(str, printMode)
+	fmt.Println(sPrint)
 }
