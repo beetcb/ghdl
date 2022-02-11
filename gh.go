@@ -76,7 +76,7 @@ func (gr GHRelease) GetGHReleases() (*GHReleaseDl, error) {
 		return nil, fmt.Errorf("no binary release found")
 	}
 
-	// Pick release assets
+	// Filter or Pick release assets
 	matchedAssets := filterAssets(filterAssets(releaseAssets, OS), ARCH)
 	matchedIdx := 0
 	if len(matchedAssets) != 1 {
@@ -94,7 +94,10 @@ func (gr GHRelease) GetGHReleases() (*GHReleaseDl, error) {
 // Filter assets by match pattern, falling back to the default assets if no match is found
 func filterAssets(assets []APIReleaseAsset, match string) (ret []APIReleaseAsset) {
 	for _, asset := range assets {
-		if strings.Contains(strings.ToLower(asset.Name), match) {
+		lowerName := strings.ToLower(asset.Name)
+		if strings.Contains(lowerName, match) {
+			ret = append(ret, asset)
+		} else if match == "amd64" && (strings.Contains(lowerName, "x64") || strings.Contains(lowerName, "x86_64")) {
 			ret = append(ret, asset)
 		}
 	}
