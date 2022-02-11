@@ -57,7 +57,7 @@ func (m model) View() string {
 	colorS := paddingS.Copy().
 		Foreground(blue).BorderLeft(true).BorderForeground(blue)
 	if m.selected == -1 {
-		s := paddingS.Copy().Foreground(yellow).Render("gh-dl can't figure out which release to download\nplease select it manully") + "\n"
+		s := "\n" + paddingS.Copy().Foreground(yellow).Render("gh-dl can't figure out which release to download\nplease select it manully") + "\n\n"
 		for i, choice := range m.choices {
 			if m.cursor == i {
 				s += colorS.Render(choice) + "\n"
@@ -68,7 +68,7 @@ func (m model) View() string {
 		// Send the UI for rendering
 		return s + "\n"
 	} else {
-		s := paddingS.Copy().Foreground(yellow).Render(fmt.Sprintf("start downloading %s", lipgloss.NewStyle().Foreground(blue).Render(m.choices[m.selected]))) + "\n"
+		s := "\n" + paddingS.Copy().Foreground(yellow).Render(fmt.Sprintf("start downloading %s", lipgloss.NewStyle().Foreground(blue).Render(m.choices[m.selected]))) + "\n"
 		return s
 	}
 }

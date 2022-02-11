@@ -31,7 +31,8 @@ gh-dl handles archived or compressed file as well`,
 		ghRelease := ghdl.GHRelease{RepoPath: repo, TagName: tag}
 		ghReleaseDl, err := ghRelease.GetGHReleases()
 		if err != nil {
-			h.Print(fmt.Sprintf("get gh releases failed: %s\n", err), h.PrintModeErr)
+			h.Print(fmt.Sprintf("get gh releases failed: %s", err), h.PrintModeErr)
+			os.Exit(1)
 		}
 
 		if binaryNameFlag != "" {
