@@ -23,7 +23,7 @@
 - Auto filtering: multiple assets in one release will be filtered by OS or ARCH.
 - Interactive TUI: when auto filtering is failed or returned multiple options, you can select assets in a interactive way, with vim key bindings support.
 - Release tags: `ghdl` downloads latest release by default, other or old tagged releases can be downloaded by specifying release tag: `username/repo#tagname`
-- See download with real-time progress bar.
+- Inspect download status with real-time progress bar.
 
 # Installation
 
