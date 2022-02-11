@@ -80,7 +80,6 @@ func (dl GHReleaseDl) ExtractBinary() error {
 	if err != nil {
 		return err
 	}
-	defer openfile.Close()
 
 	fileExt := filepath.Ext(dl.Url)
 	var decompressedBinary io.Reader
@@ -121,6 +120,7 @@ func (dl GHReleaseDl) ExtractBinary() error {
 		return fmt.Errorf("unsupported file format: %v", fileExt)
 	}
 	defer os.Remove(tmpfileName)
+	defer openfile.Close()
 	out, err := os.Create(dl.BinaryName)
 	if err != nil {
 		return err

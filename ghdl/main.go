@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/beetcb/ghdl"
@@ -38,6 +39,7 @@ ghdl handles archived or compressed file as well`,
 		if binaryNameFlag != "" {
 			ghReleaseDl.BinaryName = binaryNameFlag
 		}
+		h.Print(fmt.Sprintf("start downloading [%s]", filepath.Base(ghReleaseDl.Url)), h.PrintModeInfo)
 		if err := ghReleaseDl.DlTo(pathFlag); err != nil {
 			h.Print(fmt.Sprintf("download failed: %s", err), h.PrintModeErr)
 			os.Exit(1)

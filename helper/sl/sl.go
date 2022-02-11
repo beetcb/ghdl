@@ -9,8 +9,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-const maxWidth = 80
-
 type model struct {
 	choices  []string // items on the to-do list
 	cursor   int      // which to-do list item our cursor is pointing at
@@ -55,9 +53,8 @@ func (m model) View() string {
 	paddingS := lipgloss.NewStyle().PaddingLeft(2).Width(printWidth)
 	colorS := paddingS.Copy().
 		Foreground(blue).BorderLeft(true).BorderForeground(blue)
-	s := "\n" + h.Sprint("there is more than one option after filtering, please select it manually", h.PrintModeInfo) + "\n"
+	s := h.Sprint("there is more than one option after filtering, please select it manually", h.PrintModeInfo) + "\n"
 	if m.selected == -1 {
-		s += "\n"
 		for i, choice := range m.choices {
 			if m.cursor == i {
 				s += colorS.Render(choice) + "\n"
@@ -68,7 +65,6 @@ func (m model) View() string {
 		// Send the UI for rendering
 		return s + "\n"
 	} else {
-		s += h.Sprint(fmt.Sprintf("start downloading %s", lipgloss.NewStyle().Foreground(blue).Render(m.choices[m.selected])), h.PrintModeInfo) + "\n"
 		return s
 	}
 }

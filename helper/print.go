@@ -13,7 +13,7 @@ const (
 )
 
 func Sprint(str string, printMode int) string {
-	printWidth := 60
+	printWidth := 80
 	var newStyle = lipgloss.NewStyle().Width(printWidth)
 	prompt := lipgloss.NewStyle().Foreground(lipgloss.Color("13")).Render("→ ")
 	var sPrint string = prompt
