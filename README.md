@@ -6,7 +6,7 @@
 
 ![demo](./demo.svg)
 
-- Auto decompressing and unarchiving the downloaded asset.
+- Auto decompressing and unarchiving the downloaded asset (without any system dependencies like `tar` or `unzip`).
 
     ```ts
     Currently supporting unarchiving `tar` and decompressing `zip` `gzip`.
@@ -26,8 +26,10 @@
     ```sh
     go install github.com/beetcb/ghdl/ghdl@latest`
     ```
+
 - Download and run executable from release.
 - Run the following shell script(*nix system only):
+
     ```sh
     curl -fsSL "https://bina.egoist.sh/beetcb/ghdl?dir=/usr/local/bin" | sh
     # feel free to change the `dir` url param to specify the installation directory.
@@ -52,4 +54,14 @@ ghdl --help
 
 ```
 
-It's tedious to specify `-p` manually, we can alias `ghdl -p "$DirInPath"` to a shorthand command, then use it as a executable installer 
+It's tedious to specify `-p` manually, we can alias `ghdl -p "$DirInPath"` to a shorthand command, then use it as a executable installer.
+
+# Credit
+
+Inspired by [egoist/bina](https://github.com/egoist/bina), TUI powered by [charmbracelet/bubbletea](https://github.com/charmbracelet/bubbletea)
+
+# License
+
+Licensed under [MIT](./LICENSE)
+
+Author: @beetcb | Email: i@beetcb.com
