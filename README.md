@@ -2,7 +2,7 @@
 
 > Memorize `ghdl` as `github download`
 
-`ghdl` is a fast and simple program for downloading and installing executable binary from github releases.
+`ghdl` is a fast and simple program (and also a golang module) for downloading and installing executable binary from github releases.
 
 <p align="center">
     <img alt="animated demo" src="./demo.svg" width="600px">
@@ -26,6 +26,9 @@
 - See download with real-time progress bar.
 
 # Installation
+
+> If you're going to use `ghdl` as a go module, ignore the following installation progress.
+
 - Using Go tools: 
 
     go will download the latest version of ghdl to $GOPATH/bin, please make sure $GOPATH is in the PATH: 
@@ -44,6 +47,7 @@
 
 # Usage
 
+### CLI
 Run `ghdl --help`
 
 ```sh
@@ -62,6 +66,62 @@ ghdl --help
 ```
 
 It's tedious to specify `-p` manually, we can alias `ghdl -p "$DirInPath"` to a shorthand command, then use it as a executable installer.
+
+### Go Module
+
+Require `ghdl` to go.mod
+
+```sh
+go get github.com/beetcb/ghdl
+```
+
+Use `ghdl`'s out-of-box utilities:
+
+```go
+package main
+
+import (
+	"fmt"
+	"os"
+
+	"github.com/beetcb/ghdl"
+	h "github.com/beetcb/ghdl/helper"
+)
+
+func main() {
+	ghRelease := ghdl.GHRelease{RepoPath: "sharkdp/fd"}
+	ghReleaseDl, err := ghRelease.GetGHReleases()
+	if err != nil {
+		h.Print(fmt.Sprintf("get gh releases failed: %s", err), h.PrintModeErr)
+		os.Exit(1)
+	}
+
+	if err := ghReleaseDl.DlTo("."); err != nil {
+		h.Print(fmt.Sprintf("download failed: %s", err), h.PrintModeErr)
+		os.Exit(1)
+	}
+
+	if err := ghReleaseDl.ExtractBinary(); err != nil {
+		switch err {
+		case ghdl.NeedInstallError:
+			h.Print(fmt.Sprintf("%s. You can install %s with the appropriate commands", err, ghReleaseDl.BinaryName), h.PrintModeInfo)
+			os.Exit(0)
+		case ghdl.NoBinError:
+			h.Print(fmt.Sprintf("%s. Try to specify binary name flag", err), h.PrintModeInfo)
+			os.Exit(0)
+		default:
+			h.Print(fmt.Sprintf("extract failed: %s", err), h.PrintModeErr)
+			os.Exit(1)
+		}
+	}
+
+	h.Print(fmt.Sprintf("saved executable to %s", ghReleaseDl.BinaryName), h.PrintModeSuccess)
+    
+	if err := os.Chmod(ghReleaseDl.BinaryName, 0777); err != nil {
+		h.Print(fmt.Sprintf("chmod failed: %s", err), h.PrintModeErr)
+	}
+}
+```
 
 # Credit
 
