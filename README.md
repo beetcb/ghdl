@@ -1,10 +1,17 @@
 # ghdl
 
-`ghdl`(short for github download) is a fast and simple program for downloading and installing executable binary from GitHub releases.
+> Memorize `ghdl` as `github download`
+
+`ghdl` is a fast and simple program for downloading and installing executable binary from github releases.
+
+<p align="center">
+    <img alt="animated demo" src="./demo.svg" width="600px">
+</p>
+<p align="center">
+  <strong>The demo above extracts <code>fd</code> execuable to current working directory and give execute permission to it.</strong>
+</p>
 
 # Features
-
-![demo](./demo.svg)
 
 - Auto decompressing and unarchiving the downloaded asset (without any system dependencies like `tar` or `unzip`).
 
