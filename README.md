@@ -34,7 +34,7 @@
     go will download the latest version of ghdl to $GOPATH/bin, please make sure $GOPATH is in the PATH: 
 
     ```sh
-    go install github.com/beetcb/ghdl/ghdl@latest`
+    go install github.com/beetcb/ghdl/ghdl@latest
     ```
 
 - Download and run executable from release.
