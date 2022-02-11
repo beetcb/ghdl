@@ -17,11 +17,13 @@
 - Release tags: `ghdl` downloads latest release by default, other or old tagged releases can be downloaded by specifying release tag: `username/repo#tagname`
 
 # Installation
-- Using go tools: 
+- Using Go tools: 
+
+    go will download the latest version of ghdl to $GOPATH/bin, please make sure $GOPATH is in the PATH: 
 
     ```sh
-    go install github.com/beetcb/ghdl/cmd/ghdl@latest`
-
+    go install github.com/beetcb/ghdl/ghdl@latest`
     ```
-- Download executable from release
+- Download executable from release.
+
 
