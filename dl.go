@@ -28,8 +28,9 @@ type GHReleaseDl struct {
 	Size       int64
 }
 
-// Download asset from github release
-// dl.BinaryName shall change with full path mutably
+// Download asset from github release to `path`
+//
+// dl.BinaryName shall be replaced with absolute path mutably
 func (dl *GHReleaseDl) DlTo(path string) (err error) {
 	dl.BinaryName, err = filepath.Abs(filepath.Join(path, dl.BinaryName))
 	if err != nil {
@@ -68,6 +69,11 @@ func (dl *GHReleaseDl) DlTo(path string) (err error) {
 	return nil
 }
 
+// Extract binary file from the downloaded temporary file.
+//
+// Currently supporting unarchiving `tar` and decompressing `zip` `gzip`.
+//
+// Package format `deb` `rpm` `apk` will be downloaded directly
 func (dl GHReleaseDl) ExtractBinary() error {
 	tmpfileName := dl.BinaryName + ".tmp"
 	openfile, err := os.Open(tmpfileName)
@@ -80,7 +86,7 @@ func (dl GHReleaseDl) ExtractBinary() error {
 	var decompressedBinary io.Reader
 	switch fileExt {
 	case ".zip":
-		zipFile, err := dl.ZipBinary(openfile)
+		zipFile, err := dl.UnZipBinary(openfile)
 		if err != nil {
 			return err
 		}
@@ -90,12 +96,12 @@ func (dl GHReleaseDl) ExtractBinary() error {
 		}
 	case ".gz":
 		if strings.Contains(dl.Url, ".tar.gz") {
-			decompressedBinary, err = dl.TargzBinary(openfile)
+			decompressedBinary, err = dl.UnTargzBinary(openfile)
 			if err != nil {
 				return err
 			}
 		} else {
-			decompressedBinary, err = dl.GzBinary(openfile)
+			decompressedBinary, err = dl.UnGzBinary(openfile)
 			if err != nil {
 				return err
 			}
@@ -126,7 +132,7 @@ func (dl GHReleaseDl) ExtractBinary() error {
 	return nil
 }
 
-func (dl GHReleaseDl) ZipBinary(r *os.File) (*zip.File, error) {
+func (dl GHReleaseDl) UnZipBinary(r *os.File) (*zip.File, error) {
 	b := filepath.Base(dl.BinaryName)
 	zipR, err := zip.NewReader(r, dl.Size)
 	if err != nil {
@@ -141,7 +147,7 @@ func (dl GHReleaseDl) ZipBinary(r *os.File) (*zip.File, error) {
 	return nil, NoBinError
 }
 
-func (GHReleaseDl) GzBinary(r *os.File) (*gzip.Reader, error) {
+func (GHReleaseDl) UnGzBinary(r *os.File) (*gzip.Reader, error) {
 	gzR, err := gzip.NewReader(r)
 	if err != nil {
 		return nil, err
@@ -150,7 +156,7 @@ func (GHReleaseDl) GzBinary(r *os.File) (*gzip.Reader, error) {
 	return gzR, nil
 }
 
-func (dl GHReleaseDl) TargzBinary(r *os.File) (*tar.Reader, error) {
+func (dl GHReleaseDl) UnTargzBinary(r *os.File) (*tar.Reader, error) {
 	b := filepath.Base(dl.BinaryName)
 	gzR, err := gzip.NewReader(r)
 	if err != nil {
