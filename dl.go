@@ -17,9 +17,9 @@ import (
 )
 
 var (
-	NeedInstallError = errors.New(
+	ErrNeedInstall = errors.New(
 		"detected deb/rpm/apk package, download directly")
-	NoBinError = errors.New("binary file not found")
+	ErrNoBin = errors.New("binary file not found")
 )
 
 type GHReleaseDl struct {
@@ -46,10 +46,6 @@ func (dl *GHReleaseDl) DlTo(path string) (err error) {
 		return err
 	}
 	defer resp.Body.Close()
-
-	if err != nil {
-		return err
-	}
 
 	tmpfile, err := os.Create(dl.BinaryName + ".tmp")
 	if err != nil {
@@ -114,7 +110,7 @@ func (dl GHReleaseDl) ExtractBinary() error {
 		if err := os.Rename(tmpfileName, fileName); err != nil {
 			panic(err)
 		}
-		return NeedInstallError
+		return ErrNeedInstall
 	default:
 		defer os.Remove(tmpfileName)
 		return fmt.Errorf("unsupported file format: %v", fileExt)
@@ -144,7 +140,7 @@ func (dl GHReleaseDl) UnZipBinary(r *os.File) (*zip.File, error) {
 			return f, nil
 		}
 	}
-	return nil, NoBinError
+	return nil, ErrNoBin
 }
 
 func (GHReleaseDl) UnGzBinary(r *os.File) (*gzip.Reader, error) {
@@ -180,5 +176,5 @@ func (dl GHReleaseDl) UnTargzBinary(r *os.File) (*tar.Reader, error) {
 			return tarR, nil
 		}
 	}
-	return nil, NoBinError
+	return nil, ErrNoBin
 }

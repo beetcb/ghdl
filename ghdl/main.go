@@ -28,9 +28,13 @@ ghdl handles archived or compressed file as well`,
 		if err != nil {
 			panic(err)
 		}
+		filterOff, err := cmdFlags.GetBool("filter-off")
+		if err != nil {
+			panic(err)
+		}
 		repo, tag := parseArg(args[0])
 		ghRelease := ghdl.GHRelease{RepoPath: repo, TagName: tag}
-		ghReleaseDl, err := ghRelease.GetGHReleases()
+		ghReleaseDl, err := ghRelease.GetGHReleases(filterOff)
 		if err != nil {
 			h.Print(fmt.Sprintf("get gh releases failed: %s", err), h.PrintModeErr)
 			os.Exit(1)
@@ -46,10 +50,10 @@ ghdl handles archived or compressed file as well`,
 		}
 		if err := ghReleaseDl.ExtractBinary(); err != nil {
 			switch err {
-			case ghdl.NeedInstallError:
+			case ghdl.ErrNeedInstall:
 				h.Print(fmt.Sprintf("%s. You can install %s with the appropriate commands", err, ghReleaseDl.BinaryName), h.PrintModeInfo)
 				os.Exit(0)
-			case ghdl.NoBinError:
+			case ghdl.ErrNoBin:
 				h.Print(fmt.Sprintf("%s. Try to specify binary name flag", err), h.PrintModeInfo)
 				os.Exit(0)
 			default:
@@ -72,8 +76,9 @@ func main() {
 }
 
 func init() {
-	rootCmd.PersistentFlags().StringP("name", "n", "", "specify binary file name")
-	rootCmd.PersistentFlags().StringP("path", "p", ".", "save binary to `path`")
+	rootCmd.PersistentFlags().StringP("name", "n", "", "specify binary file name to enhance filtering and extracting accuracy")
+	rootCmd.PersistentFlags().StringP("path", "p", ".", "save binary to `path` and add execute permission to it")
+	rootCmd.PersistentFlags().BoolP("filter-off", "-F", false, "turn off auto-filtering feature")
 }
 
 // parse user/repo[#tagname] arg

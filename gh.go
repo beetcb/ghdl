@@ -32,7 +32,7 @@ type APIReleaseAsset struct {
 	Size        int    `json:"size"`
 }
 
-func (gr GHRelease) GetGHReleases() (*GHReleaseDl, error) {
+func (gr GHRelease) GetGHReleases(filterOff bool) (*GHReleaseDl, error) {
 	var tag string
 	if gr.TagName == "" {
 		tag = "latest"
@@ -77,7 +77,13 @@ func (gr GHRelease) GetGHReleases() (*GHReleaseDl, error) {
 	}
 
 	// Filter or Pick release assets
-	matchedAssets := filterAssets(filterAssets(releaseAssets, OS), ARCH)
+	matchedAssets := func() []APIReleaseAsset {
+		if filterOff {
+			return releaseAssets
+		} else {
+			return filterAssets(filterAssets(releaseAssets, OS), ARCH)
+		}
+	}()
 	matchedIdx := 0
 	if len(matchedAssets) != 1 {
 		var choices []string
