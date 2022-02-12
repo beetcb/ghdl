@@ -13,12 +13,15 @@
 
 # Features
 
-- Auto decompressing and unarchiving the downloaded asset (without any system dependencies like `tar` or `unzip`).
+- Auto decompressing and unarchiving the downloaded asset
 
     ```ts
     Currently supporting unarchiving `tar` and decompressing `zip` `gzip`.
     Package format `deb` `rpm` `apk` will be downloaded directly
     ```
+    
+    `ghdl` binary is statically linked without any system dependencies like `tar` or `unzip`, works well on non-FHS *nix systems like [NixOS](https://nixos.org/)). In case this is relevant to you, on that kind of system, only binaries like `ghdl` can be run directly.
+    
 - Setups for executable: `ghdl` moves executable to specified location and add execute permissions to the file.
 - Auto filtering: multiple assets in one release will be filtered by OS or ARCH. This feature can be disabled using `-F` flag.
 - Interactive TUI: when auto filtering is failed or returned multiple options, you can select assets in a interactive way, with vim key bindings support.
