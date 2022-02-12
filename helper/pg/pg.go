@@ -59,7 +59,7 @@ func Progress(starter func(updater func(float64)), humanize string) {
 	}
 
 	if err := tea.NewProgram(&state).Start(); err != nil {
-		h.Print(fmt.Sprintln("Oh no!", err), h.PrintModeErr)
+		h.Println(fmt.Sprintln("Oh no!", err), h.PrintModeErr)
 		os.Exit(1)
 	}
 }

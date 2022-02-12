@@ -35,35 +35,36 @@ ghdl handles archived or compressed file as well`,
 		repo, tag := parseArg(args[0])
 		ghRelease := ghdl.GHRelease{RepoPath: repo, TagName: tag}
 		ghReleaseDl, err := ghRelease.GetGHReleases(filterOff)
+
 		if err != nil {
-			h.Print(fmt.Sprintf("get gh releases failed: %s", err), h.PrintModeErr)
+			h.Println(fmt.Sprintf("get gh releases failed: %s", err), h.PrintModeErr)
 			os.Exit(1)
 		}
 
 		if binaryNameFlag != "" {
 			ghReleaseDl.BinaryName = binaryNameFlag
 		}
-		h.Print(fmt.Sprintf("start downloading [%s]", filepath.Base(ghReleaseDl.Url)), h.PrintModeInfo)
+		h.Println(fmt.Sprintf("start downloading %s", h.Sprint(filepath.Base(ghReleaseDl.Url), h.SprintOptions{PromptOff: true, PrintMode: h.PrintModeSuccess})), h.PrintModeInfo)
 		if err := ghReleaseDl.DlTo(pathFlag); err != nil {
-			h.Print(fmt.Sprintf("download failed: %s", err), h.PrintModeErr)
+			h.Println(fmt.Sprintf("download failed: %s", err), h.PrintModeErr)
 			os.Exit(1)
 		}
 		if err := ghReleaseDl.ExtractBinary(); err != nil {
 			switch err {
 			case ghdl.ErrNeedInstall:
-				h.Print(fmt.Sprintf("%s. You can install %s with the appropriate commands", err, ghReleaseDl.BinaryName), h.PrintModeInfo)
+				h.Println(fmt.Sprintf("%s. You can install it with the appropriate commands", err), h.PrintModeInfo)
 				os.Exit(0)
 			case ghdl.ErrNoBin:
-				h.Print(fmt.Sprintf("%s. Try to specify binary name flag", err), h.PrintModeInfo)
+				h.Println(fmt.Sprintf("%s. Try to specify binary name flag", err), h.PrintModeInfo)
 				os.Exit(0)
 			default:
-				h.Print(fmt.Sprintf("extract failed: %s", err), h.PrintModeErr)
+				h.Println(fmt.Sprintf("extract failed: %s", err), h.PrintModeErr)
 				os.Exit(1)
 			}
 		}
-		h.Print(fmt.Sprintf("saved executable to %s", ghReleaseDl.BinaryName), h.PrintModeSuccess)
+		h.Println(fmt.Sprintf("saved executable to %s", ghReleaseDl.BinaryName), h.PrintModeSuccess)
 		if err := os.Chmod(ghReleaseDl.BinaryName, 0777); err != nil {
-			h.Print(fmt.Sprintf("chmod failed: %s", err), h.PrintModeErr)
+			h.Println(fmt.Sprintf("chmod failed: %s", err), h.PrintModeErr)
 		}
 	},
 }
@@ -78,7 +79,7 @@ func main() {
 func init() {
 	rootCmd.PersistentFlags().StringP("name", "n", "", "specify binary file name to enhance filtering and extracting accuracy")
 	rootCmd.PersistentFlags().StringP("path", "p", ".", "save binary to `path` and add execute permission to it")
-	rootCmd.PersistentFlags().BoolP("filter-off", "-F", false, "turn off auto-filtering feature")
+	rootCmd.PersistentFlags().BoolP("filter-off", "F", false, "turn off auto-filtering feature")
 }
 
 // parse user/repo[#tagname] arg

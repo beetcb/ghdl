@@ -20,7 +20,7 @@
     Package format `deb` `rpm` `apk` will be downloaded directly
     ```
 - Setups for executable: `ghdl` moves executable to specified location and add execute permissions to the file.
-- Auto filtering: multiple assets in one release will be filtered by OS or ARCH.
+- Auto filtering: multiple assets in one release will be filtered by OS or ARCH. This feature can be disabled using `-F` flag.
 - Interactive TUI: when auto filtering is failed or returned multiple options, you can select assets in a interactive way, with vim key bindings support.
 - Release tags: `ghdl` downloads latest release by default, other or old tagged releases can be downloaded by specifying release tag: `username/repo#tagname`
 - Inspect download status with real-time progress bar.

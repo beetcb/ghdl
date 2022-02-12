@@ -53,7 +53,7 @@ func (m model) View() string {
 	paddingS := lipgloss.NewStyle().PaddingLeft(2).Width(printWidth)
 	colorS := paddingS.Copy().
 		Foreground(blue).BorderLeft(true).BorderForeground(blue)
-	s := h.Sprint("there is more than one option after filtering, please select it manually", h.PrintModeInfo) + "\n"
+	s := h.Sprint("multiple options after filtering, please select asset manually", h.SprintOptions{PrintWidth: 80}) + "\n"
 	if m.selected == -1 {
 		for i, choice := range m.choices {
 			if m.cursor == i {
@@ -73,7 +73,7 @@ func Select(choices *[]string) int {
 	state := initialModel(choices)
 	p := tea.NewProgram(&state)
 	if err := p.Start(); err != nil {
-		h.Print(fmt.Sprintf("Alas, there's been an error: %v", err), h.PrintModeErr)
+		h.Println(fmt.Sprintf("Alas, there's been an error: %v", err), h.PrintModeErr)
 		os.Exit(1)
 	}
 	return state.selected
