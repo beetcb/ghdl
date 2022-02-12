@@ -48,80 +48,36 @@
 # Usage
 
 ### CLI
+
 Run `ghdl --help`
 
 ```sh
-ghdl --help
-    ghdl download binary from github release
-    ghdl handles archived or compressed file as well
+❯ ghdl --help
 
-    Usage:
-    ghdl <user/repo[#tagname]> [flags]
+ghdl download binary from github release
+ghdl handles archived or compressed file as well
 
-    Flags:
-    -h, --help          help for ghdl
-    -n, --name string   specify binary file name
-    -p, --path path     save binary to path (default ".")
+Usage:
+  ghdl <user/repo[#tagname]> [flags]
 
+Flags:
+  -F, --filter-off    turn off auto-filtering feature
+  -h, --help          help for ghdl
+  -n, --name string   specify binary file name to enhance filtering and extracting accuracy
+  -p, --path path     save binary to path and add execute permission to it (default ".")
 ```
 
 It's tedious to specify `-p` manually, we can alias `ghdl -p "$DirInPath"` to a shorthand command, then use it as a executable installer.
 
 ### Go Module
 
-Require `ghdl` to go.mod
+1. Require `ghdl` to go.mod
 
-```sh
-go get github.com/beetcb/ghdl
-```
+	```sh
+	go get github.com/beetcb/ghdl
+	```
 
-Use `ghdl`'s out-of-box utilities:
-
-```go
-package main
-
-import (
-	"fmt"
-	"os"
-
-	"github.com/beetcb/ghdl"
-	h "github.com/beetcb/ghdl/helper"
-)
-
-func main() {
-	ghRelease := ghdl.GHRelease{RepoPath: "sharkdp/fd"}
-	ghReleaseDl, err := ghRelease.GetGHReleases()
-	if err != nil {
-		h.Print(fmt.Sprintf("get gh releases failed: %s", err), h.PrintModeErr)
-		os.Exit(1)
-	}
-
-	if err := ghReleaseDl.DlTo("."); err != nil {
-		h.Print(fmt.Sprintf("download failed: %s", err), h.PrintModeErr)
-		os.Exit(1)
-	}
-
-	if err := ghReleaseDl.ExtractBinary(); err != nil {
-		switch err {
-		case ghdl.NeedInstallError:
-			h.Print(fmt.Sprintf("%s. You can install %s with the appropriate commands", err, ghReleaseDl.BinaryName), h.PrintModeInfo)
-			os.Exit(0)
-		case ghdl.NoBinError:
-			h.Print(fmt.Sprintf("%s. Try to specify binary name flag", err), h.PrintModeInfo)
-			os.Exit(0)
-		default:
-			h.Print(fmt.Sprintf("extract failed: %s", err), h.PrintModeErr)
-			os.Exit(1)
-		}
-	}
-
-	h.Print(fmt.Sprintf("saved executable to %s", ghReleaseDl.BinaryName), h.PrintModeSuccess)
-    
-	if err := os.Chmod(ghReleaseDl.BinaryName, 0777); err != nil {
-		h.Print(fmt.Sprintf("chmod failed: %s", err), h.PrintModeErr)
-	}
-}
-```
+2. Use `ghdl`'s out-of-box utilities: see [TestDownloadFdBinary func](./ghdl_test.go) as an example
 
 # Credit
 
