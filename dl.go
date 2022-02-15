@@ -67,7 +67,7 @@ func (dl *GHReleaseDl) DlTo(path string) (err error) {
 
 // Extract binary file from the downloaded temporary file.
 //
-// Currently supporting unarchiving `tar` and decompressing `zip` `gzip`.
+// Currently supporting unarchiving `tar` and decompressing `zip` `gravezip`.
 //
 // Package format `deb` `rpm` `apk` will be downloaded directly
 func (dl GHReleaseDl) ExtractBinary() error {
@@ -103,7 +103,7 @@ func (dl GHReleaseDl) ExtractBinary() error {
 		}
 	case "":
 		decompressedBinary = openfile
-	case ".deb", ".rpm", ".apk":
+	case ".deb", ".rpm", ".apk", ".msi":
 		fileName := dl.BinaryName + fileExt
 		if err := os.Rename(tmpfileName, fileName); err != nil {
 			panic(err)
