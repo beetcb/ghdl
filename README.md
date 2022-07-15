@@ -65,10 +65,11 @@ Usage:
   ghdl <user/repo[#tagname]> [flags]
 
 Flags:
-  -F, --filter-off    turn off auto-filtering feature
-  -h, --help          help for ghdl
-  -n, --name string   specify binary file name to enhance filtering and extracting accuracy
-  -p, --path path     save binary to path and add execute permission to it (default ".")
+  -f, --asset-filter string   specify regular expression for the asset name; used in conjunction with the platform and architecture filters.
+  -F, --filter-off            turn off auto-filtering feature
+  -h, --help                  help for ghdl
+  -n, --name string           specify binary file name to enhance filtering and extracting accuracy
+  -p, --path path             save binary to path and add execute permission to it (default ".")
 ```
 
 It's tedious to specify `-p` manually, we can alias `ghdl -p "$DirInPath"` to a shorthand command, then use it as a executable installer.

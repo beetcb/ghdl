@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strings"
 
@@ -32,7 +33,9 @@ type APIReleaseAsset struct {
 	Size        int    `json:"size"`
 }
 
-func (gr GHRelease) GetGHReleases(filterOff bool) (*GHReleaseDl, error) {
+type assetNamePredicate func(assetName string) bool
+
+func (gr GHRelease) GetGHReleases(filterOff bool, assetFilter *regexp.Regexp) (*GHReleaseDl, error) {
 	var tag string
 	if gr.TagName == "" {
 		tag = "latest"
@@ -80,9 +83,24 @@ func (gr GHRelease) GetGHReleases(filterOff bool) (*GHReleaseDl, error) {
 	matchedAssets := func() []APIReleaseAsset {
 		if filterOff {
 			return releaseAssets
-		} else {
-			return filterAssets(filterAssets(releaseAssets, OS), ARCH)
 		}
+
+		osArchPredicate := func(match string) assetNamePredicate {
+			return func(assetName string) bool {
+				return strings.Contains(assetName, match) ||
+					(match == "amd64" && (strings.Contains(assetName, "x64") || strings.Contains(assetName, "x86_64")))
+			}
+		}
+		predicates := []assetNamePredicate{
+			osArchPredicate(OS),
+			osArchPredicate(ARCH),
+		}
+		if assetFilter != nil {
+			predicates = append(predicates, func(assetName string) bool {
+				return assetFilter.MatchString(assetName)
+			})
+		}
+		return filterAssets(releaseAssets, predicates)
 	}()
 	matchedIdx := 0
 	if len(matchedAssets) != 1 {
@@ -97,13 +115,20 @@ func (gr GHRelease) GetGHReleases(filterOff bool) (*GHReleaseDl, error) {
 	return &GHReleaseDl{binaryName, asset.DownloadUrl, int64(asset.Size)}, nil
 }
 
-// Filter assets by match pattern, falling back to the default assets if no match is found
-func filterAssets(assets []APIReleaseAsset, match string) (ret []APIReleaseAsset) {
+// filterAssets assets using the provided predicates, falling back to the default assets if no match is found
+func filterAssets(assets []APIReleaseAsset, predicates []assetNamePredicate) []APIReleaseAsset {
+	ret := assets
+	for _, p := range predicates {
+		ret = filter(ret, p)
+	}
+	return ret
+}
+
+func filter(assets []APIReleaseAsset, predicate assetNamePredicate) []APIReleaseAsset {
+	var ret []APIReleaseAsset
 	for _, asset := range assets {
 		lowerName := strings.ToLower(asset.Name)
-		if strings.Contains(lowerName, match) {
-			ret = append(ret, asset)
-		} else if match == "amd64" && (strings.Contains(lowerName, "x64") || strings.Contains(lowerName, "x86_64")) {
+		if predicate(lowerName) {
 			ret = append(ret, asset)
 		}
 	}

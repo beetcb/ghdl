@@ -12,7 +12,7 @@ import (
 // Shall never failed (if complied) but can test TUI behavior and functionality
 func TestDownloadFdBinary(t *testing.T) {
 	ghRelease := GHRelease{RepoPath: "sharkdp/fd"}
-	ghReleaseDl, err := ghRelease.GetGHReleases(false)
+	ghReleaseDl, err := ghRelease.GetGHReleases(false, nil)
 
 	if err != nil {
 		h.Println(fmt.Sprintf("get gh releases failed: %s", err), h.PrintModeErr)
