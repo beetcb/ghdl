@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/beetcb/ghdl"
@@ -32,9 +33,21 @@ ghdl handles archived or compressed file as well`,
 		if err != nil {
 			panic(err)
 		}
+		assetFilterString, err := cmdFlags.GetString("asset-filter")
+		if err != nil {
+			panic(err)
+		}
+		var assetFilter *regexp.Regexp
+		if assetFilterString != "" {
+			assetFilter, err = regexp.Compile(assetFilterString)
+			if err != nil {
+				panic(err)
+			}
+		}
+
 		repo, tag := parseArg(args[0])
 		ghRelease := ghdl.GHRelease{RepoPath: repo, TagName: tag}
-		ghReleaseDl, err := ghRelease.GetGHReleases(filterOff)
+		ghReleaseDl, err := ghRelease.GetGHReleases(filterOff, assetFilter)
 
 		if err != nil {
 			h.Println(fmt.Sprintf("get gh releases failed: %s", err), h.PrintModeErr)
@@ -78,6 +91,8 @@ func main() {
 
 func init() {
 	rootCmd.PersistentFlags().StringP("name", "n", "", "specify binary file name to enhance filtering and extracting accuracy")
+	rootCmd.PersistentFlags().StringP("asset-filter", "f", "",
+		"specify regular expression for the asset name; used in conjunction with the platform and architecture filters.")
 	rootCmd.PersistentFlags().StringP("path", "p", ".", "save binary to `path` and add execute permission to it")
 	rootCmd.PersistentFlags().BoolP("filter-off", "F", false, "turn off auto-filtering feature")
 }
