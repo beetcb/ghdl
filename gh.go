@@ -33,7 +33,7 @@ type APIReleaseAsset struct {
 	Size        int    `json:"size"`
 }
 
-type assetNamePredicate func(assetName string) bool
+type AssetNamePredicate func(assetName string) bool
 
 func (gr GHRelease) GetGHReleases(filterOff bool, assetFilter *regexp.Regexp) (*GHReleaseDl, error) {
 	var tag string
@@ -85,13 +85,19 @@ func (gr GHRelease) GetGHReleases(filterOff bool, assetFilter *regexp.Regexp) (*
 			return releaseAssets
 		}
 
-		osArchPredicate := func(match string) assetNamePredicate {
+		// The common predicate rule suits for both OS and ARCH
+		osArchPredicate := func(match string) AssetNamePredicate {
 			return func(assetName string) bool {
-				return strings.Contains(assetName, match) ||
-					(match == "amd64" && (strings.Contains(assetName, "x64") || strings.Contains(assetName, "x86_64")))
+				if strings.Contains(assetName, match) {
+					return true
+				}
+				if match == "amd64" {
+					return strings.Contains(assetName, "x64")
+				}
+				return strings.Contains(assetName, "x64_64")
 			}
 		}
-		predicates := []assetNamePredicate{
+		predicates := []AssetNamePredicate{
 			osArchPredicate(OS),
 			osArchPredicate(ARCH),
 		}
@@ -102,6 +108,7 @@ func (gr GHRelease) GetGHReleases(filterOff bool, assetFilter *regexp.Regexp) (*
 		}
 		return filterAssets(releaseAssets, predicates)
 	}()
+
 	matchedIdx := 0
 	if len(matchedAssets) != 1 {
 		var choices []string
@@ -115,8 +122,7 @@ func (gr GHRelease) GetGHReleases(filterOff bool, assetFilter *regexp.Regexp) (*
 	return &GHReleaseDl{binaryName, asset.DownloadUrl, int64(asset.Size)}, nil
 }
 
-// filterAssets assets using the provided predicates, falling back to the default assets if no match is found
-func filterAssets(assets []APIReleaseAsset, predicates []assetNamePredicate) []APIReleaseAsset {
+func filterAssets(assets []APIReleaseAsset, predicates []AssetNamePredicate) []APIReleaseAsset {
 	ret := assets
 	for _, p := range predicates {
 		ret = filter(ret, p)
@@ -124,7 +130,8 @@ func filterAssets(assets []APIReleaseAsset, predicates []assetNamePredicate) []A
 	return ret
 }
 
-func filter(assets []APIReleaseAsset, predicate assetNamePredicate) []APIReleaseAsset {
+// filterAssets assets using the provided predicates, falling back to the default assets if no match is found
+func filter(assets []APIReleaseAsset, predicate AssetNamePredicate) []APIReleaseAsset {
 	var ret []APIReleaseAsset
 	for _, asset := range assets {
 		lowerName := strings.ToLower(asset.Name)
