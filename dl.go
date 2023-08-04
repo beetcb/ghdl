@@ -103,7 +103,7 @@ func (dl GHReleaseDl) ExtractBinary() error {
 		}
 	case "":
 		decompressedBinary = openfile
-	case ".deb", ".rpm", ".apk", ".msi":
+	case ".deb", ".rpm", ".apk", ".msi", ".exe", ".dmg":
 		fileName := dl.BinaryName + fileExt
 		if err := os.Rename(tmpfileName, fileName); err != nil {
 			panic(err)
