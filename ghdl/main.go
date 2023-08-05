@@ -55,6 +55,9 @@ ghdl handles archived or compressed file as well`,
 		}
 
 		if binaryNameFlag != "" {
+			if runtime.GOOS == "windows" && !strings.HasSuffix(binaryNameFlag, ".exe") {
+				binaryNameFlag += ".exe"
+			}
 			ghReleaseDl.BinaryName = binaryNameFlag
 		}
 		h.Println(fmt.Sprintf("start downloading %s", h.Sprint(filepath.Base(ghReleaseDl.Url), h.SprintOptions{PromptOff: true, PrintMode: h.PrintModeSuccess})), h.PrintModeInfo)
