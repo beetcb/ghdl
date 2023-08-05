@@ -67,6 +67,9 @@ func (dl *GHReleaseDl) DlTo(path string) (err error) {
 		return copyErr
 	}
 	return nil
+		return copyErr
+	}
+	return nil
 }
 
 // Extract binary file from the downloaded temporary file.
