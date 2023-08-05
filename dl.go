@@ -54,14 +54,21 @@ func (dl *GHReleaseDl) DlTo(path string) (err error) {
 	defer tmpfile.Close()
 
 	// create progress tui
+	var copyErr error
 	starter := func(updater func(float64)) {
 		if _, err := io.Copy(tmpfile, &pg.ProgressBytesReader{Reader: resp.Body, Handler: func(p int) {
 			updater(float64(p) / float64(dl.Size))
 		}}); err != nil {
-			panic(err)
+			copyErr = err
 		}
 	}
 	pg.Progress(starter, humanize.Bytes(uint64(dl.Size)))
+	if copyErr != nil {
+		return copyErr
+	}
+	return nil
+		return copyErr
+	}
 	return nil
 }
 
