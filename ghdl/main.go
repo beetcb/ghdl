@@ -58,6 +58,7 @@ ghdl handles archived or compressed file as well`,
 			ghReleaseDl.BinaryName = binaryNameFlag
 		}
 		h.Println(fmt.Sprintf("start downloading %s", h.Sprint(filepath.Base(ghReleaseDl.Url), h.SprintOptions{PromptOff: true, PrintMode: h.PrintModeSuccess})), h.PrintModeInfo)
+		h.Println(fmt.Sprintf("start downloading %s", h.Sprint(filepath.Base(ghReleaseDl.Url), h.SprintOptions{PromptOff: true, PrintMode: h.PrintModeSuccess})), h.PrintModeInfo)
 		err = ghReleaseDl.DlTo(pathFlag)
 		if err != nil {
 			h.Println(fmt.Sprintf("download failed: %s", err), h.PrintModeErr)
